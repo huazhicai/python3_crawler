@@ -33,7 +33,8 @@ def getCommentCounts(newsurl):
     jd = json.loads(comments.text.strip('var data='))
     return jd['resul']['count']['total']
 
-
+#http://api.roll.news.sina.com.cn/zt_list?channel=news&cat_1=gnxw&cat_2==gdxw1||=gatxw||=zs-pl||=mtjj&level==1||=2&show_ext=1&show_all=1&show_num=22&tag=1&format=json&page=5&callback=newsloadercallback&_=1508856676182
+#http://api.roll.news.sina.com.cn/zt_list?channel=news&cat_1=gnxw&cat_2==gdxw1||=gatxw||=zs-pl||=mtjj&level==1||=2&show_ext=1&show_all=1&show_num=22&tag=1&format=json&page=6
 # 建立剖析清单链接函数
 def parseListLinks(url):
     newsdetails = []
