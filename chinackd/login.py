@@ -1,14 +1,45 @@
-import requests
+import asyncio
+from pyppeteer import launch
 
 
-def login(url):
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response
+async def login():
+    # browser = await launch({'headless': False, 'slowMo': 10})
+    browser = await launch()   # 无头无lang=zh_CN
+    page = await browser.newPage()
+    await page.setViewport({'width': 1366, 'height': 768})
+    await page.goto('http://chinackd.medidata.cn/login.jsp?FocusDomain=dn')
+    await page.type("#LoginId", "demo3")
+    await page.type("#Password", "tpqr6844", )
+    # await page.waitFor(1000)
+    await page.click("#btn_signin")
+    await page.waitFor(500)
+    # global Cookie
+    Cookie = await get_cookies(page)
+    await browser.close()
+    return Cookie
 
 
-if __name__ == '__main__':
-    url = 'http://chinackd.medidata.cn/doLoginAction?Action=doLogin&LoginIdPwd=3428df578ef3a18447b0c987507190ab1a00e36c2b58f209a1dd4fe208e28ea9ed001e06e55b2925a7775cba8744c961c8eec9c569b4d95d4813ff79f9be357d90e847f4b4f797e73219258e9cc6bd31605f7e8c3245f92eab62f21df6190f233d4f89913e690386e894b3cecb07f7e6fab36ff353079f4723efa48c8ceffd4c&loginType=1&LangID=zh_CN&_=1569553020936'
-    resp = login(url)
-    print(resp.headers)
-    print(resp.text)
+async def get_cookies(page):
+    """
+    获取cookie
+    :param page: page对象
+    :return: 处理后的cookies
+    """
+    cookie_list = await page.cookies()
+    cookies = ''
+    print(cookie_list)
+    for cookie in cookie_list:
+        coo = f'{cookie.get("name")}={cookie.get("value")};'
+        cookies += coo
+    print(cookies)
+    if 'lang=zh_CN' not in cookies:
+        cookies = cookies + 'lang=zh_CN;'
+    return cookies
+
+
+# task = [asyncio.ensure_future(mains())]
+# cook = asyncio.get_event_loop().run_until_complete(asyncio.wait(task))
+result = asyncio.get_event_loop().run_until_complete(login())
+print(result)
+
+# JSESSIONID=73AF5AE044C9A887E017104F10055A14;lang=zh_CN;

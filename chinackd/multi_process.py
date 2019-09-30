@@ -1,11 +1,10 @@
-import asyncio
-
 import requests
 from lxml.html import etree
 import time
 from retrying import retry
 from pprint import pprint
-from login import login
+from multiprocessing import Pool
+from crawler import Cookie
 
 
 @retry
@@ -14,9 +13,8 @@ def get_response(url):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36',
         'Cookie': Cookie
     }
-    print(headers)
     try:
-        response = requests.get(url, headers=headers, timeout=15)
+        response = requests.get(url, headers=headers, timeout=10)
         if response.status_code == 200 and response:
             return response  # 不可用text, 必须content, 有编码
     except requests.RequestException as e:
@@ -59,19 +57,33 @@ def parse_detail(html):
     )
 
 
-def main(base_url):
+def get_urls(base_url):
     resp = get_response(base_url)
+    urls = []
     for pid in parse_index(resp.content):
         detail_url = 'http://chinackd.medidata.cn/jsp/para/pm2/pdm.jsp?PtId={}'.format(pid)
-        print('detail', detail_url)
-        response = get_response(detail_url)
-        parse_detail(response.text)
+        urls.append(detail_url)
+    return urls
+
+
+def main(url):
+    response = get_response(url)
+    parse_detail(response.text)
 
 
 if __name__ == '__main__':
     base_url = 'http://chinackd.medidata.cn/doAction?Action=runCaseCustQry&CCQId=30042&start=0&limit=30&ExtTerm_0=&tranid=0'
     start = time.time()
-    Cookie = asyncio.get_event_loop().run_until_complete(login())
-    main(base_url)
+    urls = get_urls(base_url)
+    pool = Pool()
+    for url in urls:
+        pool.apply_async(main, args=(url,))
+    print('Waiting for all subprocesses done...')
+    pool.close()
+    pool.join()
     end = time.time()
     print((end - start) / 60)
+
+    # multi = pool.map(main, [url for url in urls])
+    # pool.close()
+    # pool.join()
