@@ -1,38 +1,40 @@
-import time
-
-import requests
 import asyncio
+from pyppeteer import launch
+import time
+#
+# # exepath = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
+# # exepath = "C:\\Windows\\SystemApps\\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\\MicrosoftEdge.exe"
+# exepath = "D:\software\\firefox.exe"
 
 
-async def test1(i):
-    r = await test2(i)
-    print(i, r)
+async def main():
+    browser = await launch({'headless': False, 'slowMo': 20})
+    page = await browser.newPage()
+    await page.setViewport({'width': 1366, 'height': 768})
+    await page.goto('http://chinackd.medidata.cn/login.jsp?FocusDomain=dn')
+    await page.type("#LoginId", "demo3")
+    await page.type("#Password", "tpqr6844", )
+    # await page.waitFor(1000)
+    await page.click("#btn_signin")
+    await page.waitFor(10000)
+    # await browser.close()
 
 
-async def test2(i):
-    r = requests.get(i)
-    print(i)
-    print(dir(r))
-    await asyncio.sleep(3)
-    print(time.time() - start)
-    return r
+asyncio.get_event_loop().run_until_complete(main())
 
 
-url = ["https://segmentfault.com/p/1210000013564725",
-       "https://www.jianshu.com/p/83badc8028bd",
-       "https://www.baidu.com/"]
+# import asyncio
+# from pyppeteer import launch
+#
+#
+# async def main():
+#     browser = await launch({'headless': False})
+#     page = await browser.newPage()
+#     await page.goto('https://www.baidu.com/')
+#     await page.screenshot({'path': 'D:\example.png'})
+#     await page.waitFor(3000)
+#     await browser.close()
+#
+#
+# asyncio.get_event_loop().run_until_complete(main())
 
-loop = asyncio.get_event_loop()
-task = [asyncio.ensure_future(test1(i)) for i in url]
-
-start = time.time()
-loop.run_until_complete(asyncio.wait(task))
-endtime = time.time() - start
-print(endtime)
-loop.close()
-
-
-loop = asyncio.get_event_loop()
-task = [asyncio.ensure_future(test2(i)) for i in url]
-loop.run_until_complete(asyncio.wait(task))
-loop.close()
