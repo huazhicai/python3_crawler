@@ -1,5 +1,6 @@
 import requests
 from lxml import etree
+from pprint import pprint
 
 
 class Login(object):
@@ -17,7 +18,7 @@ class Login(object):
     def token(self):
         response = self.session.get(self.login_url, headers=self.headers)
         selector = etree.HTML(response.text)
-        token = selector.xpath('//div/input[2]/@value')
+        token = selector.xpath('//*[@id="login"]/form/input[2]/@value')
         return token
 
     def login(self, email, password):
@@ -28,11 +29,18 @@ class Login(object):
             'login': email,
             'password': password
         }
-        response = self.session.post(self.post_url, data=post_data, headers=self.headers)
-        if response.status_code == 200:
-            self.dynamics(response.text)
+        response = requests.post(self.post_url, data=post_data, headers=self.headers)
+        # ------------------------------------------
+        cookie_jar = response.cookies
+        cookie = requests.utils.dict_from_cookiejar(cookie_jar)
+        # pprint(cookie_jar.get_dict())
+        pprint(cookie)
+        # ------------------------------------------
+        # if response.status_code == 200:
+        #     self.dynamics(response.text)
 
-        response = self.session.get(self.logined_url, headers=self.headers)
+        response = requests.get(self.logined_url, headers=self.headers, cookies=cookie)
+
         if response.status_code == 200:
             self.profile(response.text)
 
@@ -46,10 +54,10 @@ class Login(object):
     def profile(self, html):
         selector = etree.HTML(html)
         name = selector.xpath('//input[@id="user_profile_name"]/@value')[0]
-        email = selector.xpath('//select[@id="user_profile_email"]/option[@value!=""]/text()')
+        email = selector.xpath('//select[@id="user_profile_email"]/option[@value!=""]/text()')[0]
         print(name, email)
 
 
 if __name__ == "__main__":
     login = Login()
-    login.login(email='cqc@cuiqingcai.com', password='password')
+    login.login(email='huazhicai', password='110huazhicai')

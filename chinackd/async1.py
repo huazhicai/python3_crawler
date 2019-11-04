@@ -1,24 +1,28 @@
 import requests
-from lxml.html import etree
+from lxml import etree
 import time
 from retrying import retry
 from pprint import pprint
 import aiohttp
 import asyncio
-from .crawler import Cookie
+from login import login
 
+cookie = asyncio.get_event_loop().run_until_complete(login())
 
-# Cookie = 'lang=zh_CN; JSESSIONID=2D587A0E7126A1ABDF5CB5AA3A870218'
+# Cookie = 'lang=zh_CN; JSESSIONID=B04B4D95D9C54DC43DBCE4B80E020A45'
+
+cookie = cookie.update({'lang': 'zh_CN'})
+print(cookie)
 
 
 @retry
 def get_response(url):
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36',
-        'Cookie': Cookie
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36'
+        # 'Cookie': Cookie
     }
     try:
-        response = requests.get(url, headers=headers, timeout=15)
+        response = requests.get(url, headers=headers, cookies=cookie)
         if response.status_code == 200 and response:
             return response  # 不可用text, 必须content, 有编码
     except requests.RequestException as e:
@@ -36,12 +40,12 @@ def parse_index(html):
 @retry
 async def get_resp(url):
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36',
-        'Cookie': Cookie
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36'
+        # 'Cookie': Cookie
     }
     session = aiohttp.ClientSession()
     try:
-        response = await session.get(url, headers=headers)
+        response = await session.get(url, headers=headers, cookies=cookie)
         if response.status == 200 and response:
             result = await response.text()
             return result
